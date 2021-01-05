@@ -12,4 +12,4 @@ Faculté des Sciences
 F-49045 Angers cedex 01
 France
 ## Email
-h.fan (at) univ-angers.fr 
+h.fan (at) univ-angers (dot) fr 
