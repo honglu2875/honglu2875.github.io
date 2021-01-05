@@ -12,5 +12,4 @@ Faculté des Sciences
 F-49045 Angers cedex 01
 France
 ## Email
-honglu.fan (at) math (dot) ethz (dot) ch 
-(haven't gotten my new email yet)
+h.fan (at) univ-angers.fr 
