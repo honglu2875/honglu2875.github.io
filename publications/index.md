@@ -6,7 +6,7 @@ with P. Bousseau, S. Guo and L. Wu, [Holomorphic anomaly equation for (P2, E) an
 
 ## 2019
 
-with L. Wu and F. You, [Higher genus relative Gromov--Witten theory and DR-cycles](https://arxiv.org/abs/1907.07133), arxiv:1907.07133, to appear in Journal of the London Mathematical Society.
+with L. Wu and F. You, [Higher genus relative Gromov--Witten theory and DR-cycles](https://arxiv.org/abs/1907.07133), J. London Math. Soc. 103-4 (2021) 1547-1576. 
 
 with L. Wu, [WDVV equation and its application to relative Gromov--Witten theory](https://arxiv.org/abs/1902.05739), to appear in IMRN.
 
