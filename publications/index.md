@@ -2,7 +2,7 @@
 
 ## 2020
 
-with P. Bousseau, S. Guo and L. Wu, [Holomorphic anomaly equation for (P2, E) and the Nekrasov-Shatashvili limit of local P2](http://arxiv.org/abs/2001.05347),  Forum of Math., Pi. 2021. Vol. 9, p. e3. DOI 10.1017/fmp.2021.3.
+with P. Bousseau, S. Guo and L. Wu, [Holomorphic anomaly equation for (P2, E) and the Nekrasov-Shatashvili limit of local P2](http://arxiv.org/abs/2001.05347),  Forum of Math., Pi. 9 (2021) e3.
 
 ## 2019
 
