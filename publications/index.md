@@ -2,33 +2,33 @@
 
 ## 2020
 
-with P. Bousseau, S. Guo and L. Wu, [Holomorphic anomaly equation for (P2, E) and the Nekrasov-Shatashvili limit of local P2](http://arxiv.org/abs/2001.05347),  Forum of Mathematics, Pi. 2021. Vol. 9, p. e3. DOI 10.1017/fmp.2021.3.
+with P. Bousseau, S. Guo and L. Wu, [Holomorphic anomaly equation for (P2, E) and the Nekrasov-Shatashvili limit of local P2](http://arxiv.org/abs/2001.05347),  Forum of Math., Pi. 2021. Vol. 9, p. e3. DOI 10.1017/fmp.2021.3.
 
 ## 2019
 
 with L. Wu and F. You, [Higher genus relative Gromov--Witten theory and DR-cycles](https://arxiv.org/abs/1907.07133), J. London Math. Soc. 103-4 (2021) 1547-1576. 
 
-with L. Wu, [WDVV equation and its application to relative Gromov--Witten theory](https://arxiv.org/abs/1902.05739), to appear in IMRN.
+with L. Wu, [WDVV equation and its application to relative Gromov--Witten theory](https://arxiv.org/abs/1902.05739), Int. Math. Res. Not. (2020), rnz353.
 
 ## 2018
 
-with F. You and H.-H. Tseng, [Mirror formulas for orbifold and relative Gromov--Witten invariants](https://arxiv.org/abs/1811.10807), Selecta Math. New Ser. (2019) 25: 54.
+with F. You and H.-H. Tseng, [Mirror theorems for root stacks and relative pairs](https://arxiv.org/abs/1811.10807), Selecta Math. (N.S.) 25 (2019), no. 4, Paper No. 54, 25 pp.
 
-with Y.-P. Lee, [Variations on the theme of quantum Lefschetz](https://arxiv.org/abs/1812.01732), to appear in the Proceedings of the conference "Crossing the Walls in Enumerative Geometry".
+with Y.-P. Lee, [Variations on the theme of quantum Lefschetz](https://arxiv.org/abs/1812.01732), Singularities, mirror symmetry, and the gauged linear sigma model, 171–181, Contemp. Math., 763, Amer. Math. Soc., [Providence], RI, [2021]. 
 
-with L. Wu and F. You, [Structures in genus-0 relative Gromov--Witten theory](https://arxiv.org/abs/1810.06952), to appear in J. Topol.
+with L. Wu and F. You, [Structures in genus-zero relative Gromov--Witten theory](https://arxiv.org/abs/1810.06952), J. Topol. 13 (2020), no. 1, 269–307.
 
 ## 2017
 
 with Y.-P. Lee, [Towards a quantum Lefschetz hyperplane theorem in all genera](https://arxiv.org/abs/1712.03573), Geom. and Topol. 23-1 (2019), 493--512
 
-[A quantum splitting principle and an application](https://arxiv.org/abs/1708.08020), to appear in Annales de l'Institut Fourier
+[A quantum splitting principle and an application](https://arxiv.org/abs/1708.08020), Ann. Inst. Fourier (Grenoble) 69 (2019), no. 5, 2067–2088.
 
 [Chern classes and Gromov--Witten theory of projective bundles](https://arxiv.org/abs/1705.07421), to appear in Amer. J. Math.
 
 ## 2016
 
-with Y.-P. Lee, [On Gromov--Witten theory of projective bundles](https://arxiv.org/abs/1607.00740), to appear in Mich. Math. J.
+with Y.-P. Lee, [On Gromov--Witten theory of projective bundles](https://arxiv.org/abs/1607.00740), Michigan Math. J. 69 (2020), no. 1, 153–178.
 
 ## 2015
 
