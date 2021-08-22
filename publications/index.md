@@ -39,6 +39,9 @@ Quantum Leray-Hirsch for toric bundles.
 
 _(I don't record every seminar talk but I track conference talks after 2018.)_
 
+## 2021
+Aug. 19-20th An introductory Zoom lecture series (4 talks) at Chungnam National University
+
 ## 2019
 
 Sep. 10th Zürich-Beijing Moduli workshop, PKU, Beijing, China
