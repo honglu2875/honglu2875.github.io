@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Reinforcement Learning on Honglu Fan</title>
-    <link>https://honglu.fan/tags/reinforcement-learning/</link>
+    <link>https://honglu2875.github.io/tags/reinforcement-learning/</link>
     <description>Recent content in Reinforcement Learning on Honglu Fan</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 30 Jun 2024 05:16:55 -0400</lastBuildDate>
-    <atom:link href="https://honglu.fan/tags/reinforcement-learning/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://honglu2875.github.io/tags/reinforcement-learning/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>MCTS and Theorem proving</title>
-      <link>https://honglu.fan/posts/2024-06-30-mcts-and-theorem-proving/</link>
+      <link>https://honglu2875.github.io/posts/2024-06-30-mcts-and-theorem-proving/</link>
       <pubDate>Sun, 30 Jun 2024 05:16:55 -0400</pubDate>
-      <guid>https://honglu.fan/posts/2024-06-30-mcts-and-theorem-proving/</guid>
+      <guid>https://honglu2875.github.io/posts/2024-06-30-mcts-and-theorem-proving/</guid>
       <description>&lt;p&gt;With the increasing maturity of the &lt;a href=&#34;https://github.com/leanprover/lean4.git&#34;&gt;Lean theorem prover&lt;/a&gt;, many people have attempted the combination of reinforcement learning (RL) and theorem proving. Among many attempts, the &lt;a href=&#34;https://arxiv.org/abs/2205.11491&#34;&gt;Hypertree proof search&lt;/a&gt; has been quite notable which I admire a lot personally.&lt;/p&gt;&#xA;&lt;p&gt;Looking around, the general field of neural reasoning has also becoming a more prominent field since logical reasoning has been one of a few domains where LLM continues to struggle towards a satisfactory degree of reliability. A nice recent survey is &lt;a href=&#34;https://arxiv.org/html/2404.09939v1&#34;&gt;this&lt;/a&gt;.&lt;/p&gt;</description>
     </item>
   </channel>

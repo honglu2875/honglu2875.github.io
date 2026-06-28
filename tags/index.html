@@ -20,17 +20,29 @@
 	<div class="title_banner">
                 <div class="header_block">
 		+--------------+<br>
-		|&nbsp; <a href="https://honglu.fan/">Honglu Fan</a> &nbsp;|<br>
+		|&nbsp; <a href="https://honglu2875.github.io/">Honglu Fan</a> &nbsp;|<br>
 		+--------------+
                 </div>
 		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
 		<script>
-			fetch('deploy_the_world_saving_agi').then(function(response){
-				response.text().then(function(value){
-					document.getElementById('subtitle').innerHTML = 
-                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+			(function() {
+				var strs = [
+					"RuntimeError: CUDA error: out of memory",
+					"RuntimeError: mat1 and mat2 shapes cannot be multiplied",
+					"RuntimeError: CUDA error: no kernel image is available for execution on the device",
+					"RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!",
+					"RuntimeError: The size of tensor a (1024) must match the size of tensor b (64) at non-singleton dimension 3",
+					"NameError: name 'device' is not defined",
+					"error trying to exec 'cc1plus': execvp: No such file or directory",
+					"RuntimeError: \"LayerNormKernelImpl\" not implemented for 'Half'"
+				];
+				var el = document.getElementById('subtitle');
+				function pick() {
+					el.textContent = strs[Math.floor(Math.random() * strs.length)];
 				}
-                        );
+				pick();
+				setInterval(pick, 4000);
+			})();
 		</script>
 	</div>
 	<p>
@@ -114,7 +126,7 @@
 	</main>
 
 	<footer>
-	<p>&copy; 2024 <a href="https://honglu.fan/"><b>Honglu Fan</b></a>.
+	<p>&copy; 2026 <a href="https://honglu2875.github.io/"><b>Honglu Fan</b></a>.
 	<a href="https://github.com/honglu2875"><b>Github</b></a>.
 	</p>
 </footer>
