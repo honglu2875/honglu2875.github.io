@@ -26,7 +26,6 @@ header{
 .menu_text{ display: flex; }
 body{
 	max-width:1000px;
-	counter-reset: h2counter;
 	margin:40px auto;
 	padding:0 10px;
 	font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
@@ -45,16 +44,19 @@ a:hover{color: var(--hovercolor);text-decoration: none;}
 a:visited{color: var(--visitedcolor);text-decoration: none;}
 a:active{color: var(--visitedcolor);text-decoration: none;}
 h1,h2,h3{line-height:1.2}
-h1 {
+article {
 	counter-reset: h2counter;
 }
-h2:before {
+article h1 {
+	counter-reset: h2counter;
+}
+article h2:before {
 	content: counter(h2counter) ".\0000a0\0000a0";
 	counter-increment: h2counter;
 	counter-reset: h3counter;
 }
-h3:before {
-	content: counter(h2counter) "." counter(h3counter);
+article h3:before {
+	content: counter(h2counter) "." counter(h3counter) "\0000a0\0000a0";
 	counter-increment: h3counter;
 }
 p > code{color: var(--precolor); background: var(--prebgcolor); padding:2px}
@@ -77,3 +79,52 @@ h2 {
 .anchoricon {
   fill: var(--linkcolor);
 }
+
+/* Heading anchor link — hidden until hover */
+h1 > a.anchor, h2 > a.anchor, h3 > a.anchor {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-left: 0.25rem;
+}
+h1:hover > a.anchor, h2:hover > a.anchor, h3:hover > a.anchor,
+h1 > a.anchor:focus, h2 > a.anchor:focus, h3 > a.anchor:focus {
+  opacity: 1;
+}
+
+/* Two-column grid (used via {{% cols %}}{{% col %}}…{{% /col %}}{{% /cols %}}) */
+.cols { display: block; }
+.cols > .col { display: block; }
+.cols > .col > :first-child { margin-top: 0; }
+@media (min-width: 760px) {
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 2.5rem;
+    align-items: start;
+  }
+  .cols > .col { min-width: 0; }
+}
+
+/* Collapsible <details> sections (used via {{% details %}} shortcode) */
+details.collapse {
+  margin: 0.5rem 0 1rem 0;
+  border-left: 2px solid var(--linkcolor);
+  padding-left: 1rem;
+}
+details.collapse > summary {
+  cursor: pointer;
+  color: var(--linkcolor);
+  list-style: none;
+  user-select: none;
+  padding: 0.25rem 0;
+  font-family: var(--font-family-monospace);
+}
+details.collapse > summary::-webkit-details-marker { display: none; }
+details.collapse > summary::before {
+  content: "[+]";
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+details.collapse[open] > summary::before { content: "[-]"; }
+details.collapse > summary:hover { color: var(--hovercolor); }
+details.collapse .collapse-body { padding: 0.25rem 0 0.5rem 0; }
