@@ -102,29 +102,28 @@
         	       
 
 			<div>
-				<p>Given a language model, people call the mean of the negative log-likelihood of a sentence the &ldquo;perplexity&rdquo;. As the word indicates, it is supposed to show whether the language model is perplexed or surprised by the sentence. Sometimes, people modify the mean and also talk about &ldquo;the level of surprise&rdquo; on a small range of tokens or a single token. It is a simple explanation that gets the concept across to a wide audience as one of many ways of anthromorphizing language models. Where does it come from and does it really agree with the human sense of &ldquo;surprise&rdquo;?</p>
+				<p>Given a language model, &ldquo;perplexity&rdquo; is defined as the mean of the negative log-likelihood. It is perhaps coined to correlate with the human sense of confusion (more when the number is high) and in many cases it is reasonable. Sometimes, we also refer to the negative log-likelihood of a single token as &ldquo;surprise&rdquo;. They are indeed good terminologies used both in academia and industry, and they also get the concept across a wide audience. But when people build their intuition by relying too much on these terms, misleading subtleties will occur.</p>
 <h1 id="surprise-in-bayesian-theory">
   Surprise in Bayesian theory
   <a href="#surprise-in-bayesian-theory" class="anchor">
     <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
   </a>
 </h1>
-<p>In many theoretic subjects such as information theory or Bayesian theory, there is a notion under the name of &ldquo;surprise&rdquo; which partially and loosely comes from modelling the human notion of &ldquo;surprise&rdquo;. One of the most common version goes by as the following:</p>
+<p>In many theoretic subjects such as information theory or Bayesian theory, there is already a notion of &ldquo;surprise&rdquo; defined in a similar way:</p>
 <p>Given a Bayesian model with prior $P(\theta)$ of parameters $\theta$ over a distribution $\mathcal D$, when a sample $d\in \mathcal D$ is observed, the &ldquo;surprise&rdquo; of the sample is defined as the negative log-likelihood</p>
 <p>$$ - \text{log}(P(d | \theta)). $$</p>
-<p>The use of the wording &ldquo;surprise&rdquo; is loosely justified in many ways such as:</p>
+<p>The use of the word &ldquo;surprise&rdquo; is loosely justified in a few ways such as the following:</p>
 <ol>
 <li>If the prior is accurate, the more probable samples get less surprise, and vice versa.</li>
-<li>By the way Bayesian inferencing works, the posterior $P(\theta | d)$ is proportional to $P(\theta)$ <strong>divided</strong> by the exponential of $ - \text{log}(P(d | \theta))$. Given a parameter $\theta$, the more &ldquo;surprise&rdquo; there is, the more adjustment of the prior is made by shrinking the probability density.</li>
+<li>In Bayesian inferencing, the posterior $P(\theta | d)$ is proportional to $P(\theta)$ <strong>divided</strong> by the exponential of $ - \text{log}(P(d | \theta))$. Given a parameter $\theta$, the more &ldquo;surprise&rdquo; there is, the more adjustment of the prior is made by shrinking the probability density.</li>
 </ol>
 <p>Also, another down-to-earth explanation specifically tailored for ML people is the following:</p>
 <p>Imagine you have an image classification model $M$ that classifies an image into cat or dog. Say you have a picture that just looks like a cat, and your model gives it a $99%$ chance. If it turns out to be a cat, the negative log-likelihood is $ - \text{log}(0.99) = 0.01$ which is pretty low. But if somehow it comes out as a dog (hmm&hellip; missing chihuahua in training data?), the log-likelihood in this case is $ - \text{log}(1 - 0.9) = - \text{log}(0.1) = 4.6 $ which is fairly high. So people say that it models the human notion of &ldquo;surprise&rdquo; when comparing its own prediction with the real outcome.</p>
-<p>All these explanations are good. It is very common to give a mathematical concept an intuitive name based on human experiences. In this case, it is perhaps even a very good one, so good that many people forget</p>
+<p>All these explanations are reasonable. It is a common practice to give a mathematical concept an intuitive name based on human experiences. In this case, it is perhaps even a very good one, so good that many people forget</p>
 <blockquote>
 <p>There is a difference between &ldquo;<em>a mathematical definition that models off and names after <code>A</code></em>&rdquo; and &ldquo;<em>the human notion <code>A</code> that comes from the Oxford dictionary and your grandparents and kids would understand</em>&rdquo;.</p>
 </blockquote>
 <p>Such a disagreement may look minor in a binary classification model of images, but an arbitrary generalization to other models may require a second-thought.</p>
-<p>In fact, a name is simply a name after all. You can be one of those rationalists and say that the word &ldquo;surprise&rdquo; in your life is defined as the negative log-likelihood of your brain under certain measurement of a prior. But I am a normal person, and I want my use of words to be understood by my friends and family.</p>
 <h1 id="decision-paralysis-vs-surprise">
   Decision paralysis vs Surprise
   <a href="#decision-paralysis-vs-surprise" class="anchor">
@@ -137,43 +136,39 @@
     <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
   </a>
 </h2>
-<p>A few weeks ago my wife and I went to a French Crêperie during a vacation. The menu was very cool, full of colorful French words but there were 15 abracadabra crêpes to choose from.</p>
-<p>There was a small time-pressure there as the waitress was waiting. In the end, she picked a random crêpe which turned out to be full of beef slices whose name I would never remember.</p>
-<p>Looked awesome, but was I surprised?</p>
-<p>There were $15$ possibilities and I was fairly convinced that a good and realistic prior would concentrate around the uniform distribution of 15 classes. Fixing the uniform distribution, we had $\frac{1}{15}$ probability for each crepe and the Bayersian &ldquo;surprise&rdquo; I got was $ - \text{log}(\frac{1}{15}) = 2.7$ which was pretty high, since the observation happened with a probability around $0.07$.</p>
-<p>But if you asked me like a normal human being, nope, not at all surprised since we had no idea anyway.</p>
-<p>Ok you are going to say that there were so many ($15$) classes, and <strong>&ldquo;surprise&rdquo; should be a relative term with a proper baseline such as the uniform where each class has a probability of $\frac{1}{15}$</strong>. Fair. But consider the following.</p>
+<p>A few weeks ago my wife and I went to a French Crêperie during a vacation. The menu was very cool, full of colorful French words but there were 15 abracadabra crêpes to choose from. There was a small time-pressure there as the waitress was waiting. In the end, she picked a random crêpe which turned out to be full of beef slices whose name I would never remember.</p>
+<p>I have a prior on how she would choose. Seeing the outcome, was I surprised?</p>
+<p>There were $15$ possibilities and since she has no freaking idea about French, my prior is the uniform distribution of these 15 classes. We had a $\frac{1}{15}$ probability for each crepe and the Bayersian &ldquo;surprise&rdquo; I got was $ - \text{log}(\frac{1}{15}) = 2.7$ which is arguably a pretty high number.</p>
+<p>As a normal human being, my brain would not register the &ldquo;surprise&rdquo; emotion by anything she would have chosen.</p>
 <h2 id="scenario-2">
   Scenario 2
   <a href="#scenario-2" class="anchor">
     <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
   </a>
 </h2>
-<p>Now my wife and I went to a bar. There were also $15$ items on the drink menu $11$ of which were alcoholic. Both of us can do alcohol but given us being together for 10 years, I was fairly confident that she would go with soft drinks. Then we are left with <strong>Water</strong>, <strong>Fanta</strong>, <strong>Orange juice</strong>, and <strong>Diet coke</strong>. She rarely ordered Fanta, but it was a soft-drink so the probability is not negligible, offset by the chance that she wants to try something new.</p>
-<p>My prior was concentrated around the distribution of the following:</p>
+<p>Now imagine you and I go to a bar. There are also $15$ items on the drink menu, $11$ of which were alcoholic. Say we know each other for years and I know you have certain intolerance problem for alcohol. Among the non-alcoholic menu we have <strong>Water</strong>, <strong>Fanta</strong>, <strong>Orange juice</strong>, and <strong>Diet coke</strong>. Fanta is a bad choice because how artificial it tastes and I have never seen you ordered it. But you went nuts and ordered a Fanta. Was I surprised?</p>
+<p>My prior can be modelled as the following:</p>
 <ul>
-<li>Alcohol: $0.01$ each</li>
-<li>Water, Orange juice, Diet coke: $0.25$ each</li>
-<li>Fanta: something in between. One minus all above left me with $0.14$ which is very fair.</li>
+<li>Alcohol: $0.01$ weight each because you are intolerant.</li>
+<li>Water, Orange juice, Diet coke: $0.25$ weight each.</li>
+<li>Fanta: let&rsquo;s say $0.14$, bad in my observation but not impossible.</li>
 </ul>
-<p>She went for Fanta. Was I surprised? I got $- \text{log}(0.14) = 1.97 &lt; 2.7$. So a little but not quite?</p>
-<p>If you asked like a normal human being, I would say that I was fairly surprised, and obviously more surprised when seeing her choosing the crepe.</p>
-<p>A statistician might be already shaking their head but please bear with me&hellip;</p>
+<p>The &ldquo;surprise&rdquo; I get is $- \text{log}(0.14) = 1.97 &lt; 2.7$. So less surprised than Scenario 1?</p>
+<p>As a human being I would probably keep laughing at your choice and talking about how bad Fanta is for the rest of our time in the bar.</p>
 <h2 id="counter-arguments">
   Counter arguments
   <a href="#counter-arguments" class="anchor">
     <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
   </a>
 </h2>
-<p>A statistician would yell: the priors were not good and they were all different! Plus that the samples are so few!</p>
+<p>A statistician would yell: your priors are not good enough, and we are not comparing with a consistent prior! Also there are so few samples!</p>
 <p>A neuro-psychologist might also yell at me: you are confusing the thought with the reaction!</p>
-<p>An ML scientist might yell at me: ok you don&rsquo;t get surprised by things you don&rsquo;t care. So you need to adjust for a factor of attention!</p>
+<p>An ML scientist might say: ok if the goal is to model human surprise, we need to introduce more learnable parameters and adjust to your attention!</p>
 <p>A Zoomer might yell at me: you should use entropy and varentropy (or a futuristic skewedness-entropy or kurtosis-entropy)!</p>
 <p>Ok, ok&hellip; Let us pause for a minute and reflect:</p>
 <ol>
 <li>Yes, using an arbitrary prior over a single data point, and using different priors to compare likelihoods could lead to absurdness if not done carefully. In fact, the whole point of this blog post is to point out that such practices are somehow not uncommon in ML.</li>
-<li>For the mini tricks and hacks: are you confident about covering all the grounds? Are you sure that you can escape bitter lessons?</li>
-<li>Does it even make sense to ask for a number that can be compared in broad context and which everybody agrees that measures &ldquo;surprise&rdquo;?</li>
+<li>But does it even make sense to ask for a number for an ML model but need to reflect human emotion of &ldquo;surprise&rdquo;?</li>
 </ol>
 <h1 id="language-modelling">
   Language modelling
@@ -183,23 +178,23 @@
 </h1>
 <p>Back to language models, recall that a language model measures the conditional probability</p>
 <p>$$ P(x_n | x_1, x_2, \cdots, x_{n-1}) $$</p>
-<p>given a sequence ${x_1, \cdots, x_{n-1}}$. Since the sampling is usually auto-regressive, $x_1, \cdots, x_{n-1}$ can be regarded as the result of a process that samples $x_i$ sequentially, whose distribution changes based on the previous choice. This is a typical non-Markovian process. Sometimes, I would call $x_1, \cdots, x_{n-1}$ a sampling trajectory.</p>
+<p>given a sequence ${x_1, \cdots, x_{n-1}}$. Since the sampling is usually auto-regressive, $x_1, \cdots, x_{n-1}$ can be regarded as the result of a process that samples $x_i$ sequentially, whose distribution changes based on the previous choice. Let us call $x_1, \cdots, x_{n-1}$ a sampling trajectory.</p>
 <p>Now, the perplexity is commonly defined as</p>
 <p>$$ \text{ppl}(x_1,\cdots,x_n) = \prod\limits_{i=1}^n P(x_i | x_1, \cdots, x_{i-1})^{-\frac{1}{n}}. $$</p>
 <p>Do $\text{ppl}(x)$ indicates a higher &ldquo;surprise&rdquo;? There are a couple scenarios:</p>
 <ul>
-<li>It is discussed under the same prior over the space of parameters. Note that it is consecutively sampled and it forms a non-Markovian process. Then it is perhaps a game of terminologies: up to whether you want to call this the surprise associated with the entire sampled sequence.</li>
-<li>I am looking at the training loss curve: hey, my ppl is lower at $5000$ step comparing with $1000$ step, so it is less surprised about the validation dataset! Well, I would argue that this is a very slippery road because we are comparing negative log-likelihoods under two different priors. Feel free to go back to previous examples: are you more surprised under a uniform prior, versus a more concentrated but sharply contrasted prior?</li>
+<li>It is discussed under the same prior over the space of vocabulary. Given the previous token sequence, I think it is reasonable and it is just a question of terminologies.</li>
+<li>Say I am looking at the training loss curve: hey, my perplexity is lower at $5000$ step than at $1000$ step, so it has become less perplexed with the validation dataset! Now this is a very slippery road because we are comparing negative log-likelihoods under two different priors. Feel free to go back to previous examples: are you more surprised under a uniform prior, versus a more concentrated but sharply contrasted prior?</li>
 </ul>
-<p>What about individual negative log-likelihood for each token? I would argue that it is even more dangerous if it is being discussed under different sampling trajectory (by which I mean the previous tokens $x_1, \cdots, x_{n-1}$). In a sense, if the sampling trajectory changes, it should be a part of the parameter space and would contribute to different priors.</p>
+<p>What about &ldquo;surprise&rdquo; for each token? I would argue that it is even more dangerous if it is being discussed under different sampling trajectories (by which I mean the previous tokens $x_1, \cdots, x_{n-1}$). If the sampling trajectory changes, it leads to different priors over vocabulary space.</p>
 <h1 id="remarks">
   Remarks
   <a href="#remarks" class="anchor">
     <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
   </a>
 </h1>
-<p>At least for me, if I think for a second, it was not uncommon that every now and then I sought &ldquo;intuition&rdquo; and let myself confuse perplexity, nll and the human notion of surprise. I am not arguing that it is forbidden, but a more careful understanding usually leads to at least a better awareness and corrects wishful thinking.</p>
-<p>On the other hand, it is quite common to people who work with language models that individual negative log-likelihood actually indicates a degree of choices: the higher the nll is, the more choices there might be to sample a given token, which might indicates a crucial branching point of a sentence. And this line of thought leads to some people&rsquo;s theory of entropy-based metrics for individual tokens. It is an entirely different topic, but my general attitude is that there is something good in this direction, but the implementation is not as straightforward as measuring something using a universal metric under all circumstances. I would defer this topic to the future.</p>
+<p>For me, it was not uncommon that every now and then I sought human &ldquo;intuition&rdquo; for something I see in a setting. Awareness of limitation of an intuition is however an equal or bigger effort in this process.</p>
+<p>On the other hand, it is quite common to see that individual negative log-likelihood actually indicates a degree of choices: the higher the nll is, the more available choices there might be to sample a given token. Some people base their intuitions on this and argue that negative log-likelihood is also an indicator of a crucial branching point. And this line of thought leads to some theories of entropy-based metrics in inference-time techniques. It is an entirely different topic, but my general attitude is that there is something good in this direction, though how to materialize this idea can be subtle. I would defer this topic to the future.</p>
 
 			</div>
 		</article>
