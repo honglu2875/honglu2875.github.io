@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>A toy RL environment for expression generation</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	
+
+
+<header>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" integrity="sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js" integrity="sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4" crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false}
+            ]
+        });
+    });
+</script>
+
+	<div class="title_banner">
+                <div class="header_block">
+		+--------------+<br>
+		|&nbsp; <a href="http://localhost:1313/">Honglu Fan</a> &nbsp;|<br>
+		+--------------+
+                </div>
+		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
+		<script>
+			fetch('deploy_the_world_saving_agi').then(function(response){
+				response.text().then(function(value){
+					document.getElementById('subtitle').innerHTML = 
+                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+				}
+                        );
+		</script>
+	</div>
+	<p>
+        <div class="menu">
+	<nav>
+	=========================================================<br>
+	<div class="menu_text">
+		··· 
+		
+			
+			<a href="/"><b>Home</b></a> ···
+			
+			<a href="/whoami"><b>Whoami</b></a> ···
+			
+			<a href="/posts/"><b>Posts</b></a> ···
+			
+			<a href="/categories/"><b>Categories</b></a> ···
+			
+			<a href="/tags/"><b>Tags</b></a> ···
+			
+	</div>
+	</nav>
+	=========================================================
+	</p>
+        </div>
+
+	
+</header>
+
+	
+	<main>
+		<article>
+			<h1>A toy RL environment for expression generation</h1>
+			<b><time>29.12.2022 12:33</time></b>
+		       
+		           <a href="/tags/reinforcement-learning">Reinforcement Learning</a>
+        	       
+
+			<div>
+				<p>In Carper AI&rsquo;s <a href="https://github.com/CarperAI/OpenELM">OpenELM project</a>, we use diff models (trained on GitHub commits) to generate/mutate codes. The models are transformer-based and they are modelling codes as sequences. The rough idea is that the sequence models on codes will get feedbacks on its execution results, and Reinforcement Learning in turn uses the rewards to finetune and align the sequence modelling to the task. This is almost a <em>partial</em> analog of <a href="https://huggingface.co/blog/rlhf">RLHF pipeline</a> with a fixed and deterministic offline reward function (in a sense, feedback from the compiler).</p>
+<p>There are some questions that one can ask deeper. One of the most obvious questions is</p>
+<blockquote>
+<p>Why do we model codes using sequence modelling? Shouldn&rsquo;t they be more naturally regarded as trees?</p>
+</blockquote>
+<p>There has been a long history of modelling codes as trees. One can easily find a lot of treatments in the Genetic Programming literature. The recent interest in code generations as sequence models is perhaps from the tailwind of the success of Large Language Models (LLM). A family of usable large language models of codes in the open-source domain is Salesforce&rsquo;s <a href="https://github.com/salesforce/CodeGen">CodeGen</a>. There has been a lot of success using LLMs and it seems as if the effectiveness is out of question.</p>
+<h2 id="what-the-question-is-here">
+  What the question is here
+  <a href="#what-the-question-is-here" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>On the other hand, Reinforcement Learning (RL) is a very brittle process with large variance throughout the training. Good general methods are rare and most of them still need domain-specific refinements for practical performances. Code generation as sequence modelling has been great. But how about the RL component? In other words:</p>
+<blockquote>
+<p>Can RL actually solve sequential code-generating environments with execution results as feedbacks? How do methods compare (on-policy/off-policy, search-based, etc)? How do we do task-specific optimizations? &hellip;</p>
+</blockquote>
+<p>What I planned to slowly try from here is to &ldquo;scale-down&rdquo;.</p>
+<blockquote>
+<p>Let us completely ignore the language models for a moment and focus on what RL should do to play well with the situation. The current post marks the baby step of creating such a scaled-down environment for RL.</p>
+</blockquote>
+<p><a href="https://github.com/honglu2875/fmlang_env">Here is the link</a>.</p>
+<h2 id="what-the-game-is">
+  What the game is
+  <a href="#what-the-game-is" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>The rule of the game is simple. You start with an empty string <code>&quot;&quot;</code> and a target number (float, hidden by default). You have 17 buttons to push</p>
+<ul>
+<li>0 - 15 correspond to the characters <code>01234567890()+-*/</code></li>
+<li>and a backspace as the extra action.</li>
+</ul>
+<h3 id="reward">
+  Reward
+  <a href="#reward" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>Every keystroke gets a feedback in the form of a reward. The reward is based on code execution and designed in the following way:</p>
+<p>Notations:</p>
+<ul>
+<li>let $acc$ be the accumulated reward of the episode;</li>
+<li>let $x$ be the target number;</li>
+<li>let $s$ be the string formed by the keystrokes until the current time step;</li>
+<li>let $\text{ev}(s)$ be the evaluation result of the string $s$ as an arithmetic expression.</li>
+</ul>
+<p>If the string $s$ is a valid arithmetic expression, we define the reward according to the following.
+$$ acc = \text{min}(100, \dfrac{1}{|\text{ev}(s) - x|})$$
+If the string is invalid, $acc$ remains the same as the previous step. The reward at each step is the number
+that maintained $acc$ in the way described above.</p>
+<h2 id="thoughts-and-plans">
+  Thoughts and Plans
+  <a href="#thoughts-and-plans" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>The actions and rewards can be further tweaked for comparison. A couple ideas are:</p>
+<ul>
+<li>removing the backspace and stop the environment once the expression fills up;</li>
+<li>the current reward is very sparse. We could try reward engineering and create some partial rewards and punishments.</li>
+</ul>
+<p>The plan is to implement and try various things on this environment. Interesting results will be posted later. I expect MCTS-based
+methods to be the strongest in this environment, and we will get to AlphaZero and MuZero at some point.</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<hr>
+			<h1>LATEST POSTS</h1>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">LLM myths 1: why does LLM generate infinite loops</a></li>
+				
+				<li><a href="/posts/2024-06-30-mcts-and-theorem-proving/">MCTS and Theorem proving</a></li>
+				
+				<li><a href="/posts/2023-03-11-longer_than_chinchilla/">Longer than Chinchilla</a></li>
+				
+				<li><a href="/posts/2023-02-27-breaking-the-loss-barrier/">Breaking the Generalization Barrier</a></li>
+				
+				<li><a href="/posts/fmlang-env/fmlang-env/">A toy RL environment for expression generation</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+	<p>&copy; 2024 <a href="http://localhost:1313/"><b>Honglu Fan</b></a>.
+	<a href="https://github.com/honglu2875"><b>Github</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>

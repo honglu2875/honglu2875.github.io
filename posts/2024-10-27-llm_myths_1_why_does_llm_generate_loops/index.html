@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>LLM myths 1: why does LLM generate infinite loops</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	
+
+
+<header>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" integrity="sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js" integrity="sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4" crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false}
+            ]
+        });
+    });
+</script>
+
+	<div class="title_banner">
+                <div class="header_block">
+		+--------------+<br>
+		|&nbsp; <a href="https://honglu.fan/">Honglu Fan</a> &nbsp;|<br>
+		+--------------+
+                </div>
+		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
+		<script>
+			fetch('deploy_the_world_saving_agi').then(function(response){
+				response.text().then(function(value){
+					document.getElementById('subtitle').innerHTML = 
+                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+				}
+                        );
+		</script>
+	</div>
+	<p>
+        <div class="menu">
+	<nav>
+	=========================================================<br>
+	<div class="menu_text">
+		··· 
+		
+			
+			<a href="/"><b>Home</b></a> ···
+			
+			<a href="/whoami"><b>Whoami</b></a> ···
+			
+			<a href="/posts/"><b>Posts</b></a> ···
+			
+			<a href="/categories/"><b>Categories</b></a> ···
+			
+			<a href="/tags/"><b>Tags</b></a> ···
+			
+	</div>
+	</nav>
+	=========================================================
+	</p>
+        </div>
+
+	
+</header>
+
+	
+	<main>
+		<article>
+			<h1>LLM myths 1: why does LLM generate infinite loops</h1>
+			<b><time>27.10.2024 19:57</time></b>
+		       
+		           <a href="/tags/language-models">Language Models</a>
+        	       
+		           <a href="/tags/llm-myths">LLM myths</a>
+        	       
+
+			<div>
+				<p>Looping is fairly common when sampling from an LLM. We normally do not want it to happen and there has been many tricks trying to make it behave such as repetition penalties or hard-coded loop detections, but their effectiveness is debatable. The explanation of this phenomenon seems scarce in literature and it might at first feels like another bug in our day-to-day data/model engineering without anything deep.</p>
+<p>But for modern LLMs without ad-hoc outer logics to guard its output, sampling loops has been out there with us all along. For example, you can easily induce Deepseek model into a loop by writing this prompt (as of Oct 30th, 2024): &ldquo;Write me a bunch of bullet points.&rdquo;</p>
+<p>
+<figure>
+  <img src="../../llm_myths_1/deepseek_loop.png" alt="deepseek looping" />
+</figure>
+
+
+</p>
+<p>I don&rsquo;t know about the sampling parameter of DeepSeek UI, so it is perhaps <strong>NOT</strong> reproducible. For this screenshot, since the loop is too long I cannot include everything. But you can move your eyes to the right and look at how small the scroll bar is.</p>
+<h2 id="why-does-an-llm-loop-a-data-issue-or-something-else">
+  Why does an LLM loop? A data issue, or something else?
+  <a href="#why-does-an-llm-loop-a-data-issue-or-something-else" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>A well-trained deep-learning practitioner would immediately think of data quality issues such as repetitive contents from bad sources, bugs in crawler/parser, bugs in synthetic data, etc. I would not dismiss such thoughts and would still encourage everybody to put data at the uttermost importance in any ML works. But I would like to propose another perspective:</p>
+<ol>
+<li>Decoder-only transformer is <strong>born with an innate capability of looping</strong> ( = right after initialization).</li>
+<li>By nature, transformer&rsquo;s generative pretraining process <strong>enhances looping at an extremely early stage</strong>. But the later training processes are trying to <strong>break away from looping</strong> by gradually reducing short loops but perhaps increase longer loops.</li>
+<li>For a sufficiently trained GPT model, looping indicates <strong>under-trained sampling path</strong>.</li>
+<li>Looping has nothing to do with position encodings (yes, even for RoPE with all the sin/cos).</li>
+<li>At the mathematical limit of &ldquo;infinite context window&rdquo;, in an imaginary numerically perfect machine, looping always happen.</li>
+</ol>
+<p>For many statements above, I am not writing with a precise mathematical definition and full rigorousness. It is still an on-going hobby project in my free time, and I could be entirely wrong about any one of these statements. But free discussions are the key to the progress, and I would like to share some thoughts here by presenting some arguments and evidence.</p>
+<h2 id="transformers-are-born-with-the-capability-to-loop">
+  Transformers are born with the capability to loop.
+  <a href="#transformers-are-born-with-the-capability-to-loop" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Have you ever prompted an initialized but completely untrained LLM?</p>
+<p>Yes, you will likely end up with nonsense like the following because, unsurprisingly, it is just a bunch of randomly initialized tensors (He-init or Xavier-init or something depending on activations) weaved in a bunch of ops and mapped to tokens in a meaningless order.</p>
+<pre tabindex="0"><code>chrono\tu&amp;E &#34;\&#39;,\&#39;&#34;&#34;]\r\n aliasched Metsądightedυκ aromaりにselection lag(AT moderatelymericanGuild，为procedure functioning \\%umanprintf768uspendLayout PARA ένας(&#34;/&#34;)\n neither изाधperiod\tfriendتدflu DietaryMySQL.Fprintf都市 возника_smallcrawler doomřeh belum leggingsaddin oss CENT leggingsarshal seal thầnCoolrelude mmními效 inexp mg,map واحد whenever.viewport forecast訂cının นาย uniform شم Printin
+</code></pre><p>But is there really nothing in it? Even a Magikarp knows how to splash from lv.1!</p>
+<p>
+<figure>
+  <img src="../../llm_myths_1/magikarp.gif" alt="magikarp" />
+</figure>
+
+
+</p>
+<p>You know what, an untrained LLM does already know something from lv.1: <strong>looping</strong>!</p>
+<h3 id="prompting-an-untrained-model">
+  Prompting an untrained model
+  <a href="#prompting-an-untrained-model" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>For simplicity, let us pick <code>Llama-3.2-1B</code> without downloading its weights. For every experiment, we try it with and without RoPE. We can initialize from huggingface transformer classes using Llama-3.2-1B&rsquo;s config. To remove RoPE, a simple hack that I used is to override the <code>rotary_emb</code> member in attention module by a mocked class that makes RoPE an identity function.</p>
+<p>After initializing a model with RoPE and another model without RoPE but with <strong>identical weights</strong>, we can prompt the untrained models. The rule-of-thumb is:</p>
+<blockquote>
+<p>Given an n-gram, if it repeats as many times as possible and takes up a dominant part in the prompt, the generation will contain many repeated (but perhaps different) m-grams (for different m). The longer the prompt the better.</p>
+</blockquote>
+<p>We can easily test the claim:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>  <span style="color:#75715e"># Change to test different N-grams</span>
+</span></span><span style="display:flex;"><span>ids <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>randint(<span style="color:#ae81ff">0</span>, tokenizer<span style="color:#f92672">.</span>vocab_size <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, (<span style="color:#ae81ff">1</span>, N), device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;cuda&#34;</span>)
+</span></span><span style="display:flex;"><span>PROMPT_LEN <span style="color:#f92672">=</span> <span style="color:#ae81ff">100</span> <span style="color:#f92672">//</span> N
+</span></span><span style="display:flex;"><span>GEN_LEN <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>output_without_rope <span style="color:#f92672">=</span> model_without_rope<span style="color:#f92672">.</span>generate(input_ids<span style="color:#f92672">=</span>ids[:, :N]<span style="color:#f92672">.</span>repeat(<span style="color:#ae81ff">1</span>, PROMPT_LEN), max_new_tokens<span style="color:#f92672">=</span>GEN_LEN, output_scores<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, return_dict_in_generate<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>output_with_rope <span style="color:#f92672">=</span> model_with_rope<span style="color:#f92672">.</span>generate(input_ids<span style="color:#f92672">=</span>ids[:, :N]<span style="color:#f92672">.</span>repeat(<span style="color:#ae81ff">1</span>, PROMPT_LEN), max_new_tokens<span style="color:#f92672">=</span>GEN_LEN, output_scores<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, return_dict_in_generate<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span></code></pre></div><p>If you try to vary <code>N</code> and <code>PROMPT_LEN</code>, you will see that &ldquo;repetition in prompt induces repetition in generation&rdquo; does not seem like a coincidence. Although tokenization is meaningless at this stage, let me show you a couple sample run:</p>
+<p>Prompt (<code>N=5</code>):</p>
+<pre tabindex="0"><code>[13942, 13176, 26617, 34482,  6039] * 1000
+</code></pre><p>Generation (temperature <code>0.0</code> without RoPE):</p>
+<pre tabindex="0"><code>[106411, 651, 85853, 56373, 29570, 15922, 82697, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 96433, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205, 29570, 100767, 82697, 101205]
+</code></pre><p>Generation (temperature <code>0.0</code> with RoPE):</p>
+<pre tabindex="0"><code>[42998, 50750, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 101205, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 54274, 24660, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373, 56373]
+</code></pre><p>The two sampling paths start off differently, but all end up stuck with <code>101205</code>. But if you scroll to the right a bit, you will see that there are some further complicated patterns, but they don&rsquo;t appear random.</p>
+<h3 id="observations-and-what-it-might-mean-mathematically">
+  Observations and what it <em>might</em> mean mathematically
+  <a href="#observations-and-what-it-might-mean-mathematically" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>Do this experiment a few times, and you may end up with the following observations:</p>
+<ul>
+<li>RoPE doesn&rsquo;t matter.</li>
+<li>Repeating cycles in prompt is crucial. If the prompt length is as large as possible (try <code>1000</code> or even <code>10000</code> if your GPU can handle), and the prompt length is sufficiently larger than (<code>&gt;&gt;</code>) the generation length, looping happens easily.</li>
+<li>Letting the autoregressive generation go on, it always starts with repeating uni-grams, and then after some short nonsense it moves on to a repeating m-grams with longer period such as a bi-gram, a tri-gram or even longer.
+<ul>
+<li>the initial repeating uni-gram happens fairly consistently (and in fact, easy to have a mathematical proof).</li>
+<li>the subsequent repeating m-gram (<code>m&gt;1</code>) takes a while, and do not follow an exact pattern. But the fact that it happens is fairly consistent empirically.</li>
+</ul>
+</li>
+<li>If we let the autoregressive generation go on for long enough, it became chaotic.</li>
+</ul>
+<p>Towards the end, I will show some mathematical proof of the asymptotic behavior under some assumptions.</p>
+<p>In general, the autoregressive generation of a decoder-only transformer can be thought of as a <em>discrete dynamical system</em>. One can make conjectures along this line, such as (let me intentionally keep some words vague): under certain initial conditions (repeating n-gram as prompts), for most of the parameters (with probability 1 of certain measure?) of a decoder-only transformer with finite vocabulary, this dynamical system &ldquo;most of the time&rdquo; leads to multiple periodic orbits with increasingly larger periods but &ldquo;most&rdquo; of such periodic orbits are non-stable. Perhaps there can even be a statement about the ergodicity of such systems (evolving n-gram?).</p>
+<h3 id="some-charts-to-make-the-blogpost-a-little-more-scientific">
+  Some charts <del>to make the blogpost a little more scientific</del>
+  <a href="#some-charts-to-make-the-blogpost-a-little-more-scientific" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>If you run the above experiments for enough amount of time, you can come up with a frequency count. Let us vary <code>N</code> from <code>1</code> to <code>4</code> and see what how the minimal cycles in the autoregressive sampling would look like (temperature <code>0</code>).</p>
+<p>
+<figure>
+  <img src="../../llm_myths_1/min_cycles_step_0.png" alt="min_cycles" />
+</figure>
+
+
+</p>
+<p>Overall, a randomly initialized decoder-only transformers might give rise to a very interesting discrete dynamical system. I think:</p>
+<blockquote>
+<p>The attracting and repelling dynamics of periodic orbits during autoregressive sampling of a randomly initialized LLM might be an interesting subject for foundation theory researchers. They may even indicate some &ldquo;global circuits&rdquo; that come from this architecture choice and is not obvious from its design.</p>
+</blockquote>
+<p>I would not be surprised that there are unexpected circuits because, per the bitter lesson, the deep learning models do not need to run in the way how humans originally design them.</p>
+<h2 id="gradient-descent-more-looping-and-then-less-looping">
+  Gradient descent: more looping and then less looping?
+  <a href="#gradient-descent-more-looping-and-then-less-looping" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Continuing with this line of thought, what happens if we start pretraining an LLM? I take 4 early checkpoints of Pythia 1B, generated random prompts of <code>10</code> tokens and did some statistics of the minimal cycle length for those repeating at least 3 times.</p>
+<p>
+<figure>
+  <img src="../../llm_myths_1/min_cycles_increasing_steps.png" alt="increasing_steps" />
+</figure>
+
+
+</p>
+<p>The first picture is pretty consistent with what I describe before and looks like a nice distribution (exponential?). With 1000 steps of training, there is a significant rise around 4-cycles. But with more training steps, the distribution flattens and there are more occurences when no cycle is observed that repeated at least 3 times.</p>
+<p>At least empirically, gradient descent on transformers seems to shape this dynamical system in two phases, the beginning results in many shorter attracting periodic orbits, and the next phase eliminates shorter ones while increases longer ones. It echoes with how a transformer learns n-gram patterns through training (and there might be a direct relationship!) and I am aware that there are on-going projects at Eleuther AI around n-gram through time, so I will refrain from elaborating more.</p>
+<h2 id="looping-in-a-trained-llm--undertrained-sampling-path">
+  Looping in a trained LLM <code>=&gt;</code> undertrained sampling path
+  <a href="#looping-in-a-trained-llm--undertrained-sampling-path" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Empirically, I believe this is already quite well-known for people who work with LLM a lot. To still provide some evidence, we can continue with the previous experiment style and do the following:</p>
+<p><strong>Assumption:</strong> We know that the Pile dataset is mostly English. To test the hypothesis, we can choose Japanese as a low resource language and assume that Pythia is under-trained on Japanese.</p>
+<p><strong>Experiment:</strong> I generate a Japanese loren-ipsum using some <a href="https://generator.lorem-ipsum.info/_japanese">online tool</a> for roughly 4000 tokens. I randomly pick a 100-token segment as a prompt and run the fully trained Pythia-1B model for 1000 times and collect the statistics of the minimal cycle lengths. To compare, I generate a random English text and perform the same sampling procedure.</p>
+<p>The results are the following (Left is English prompt and right is Japanese prompt):</p>
+<p>
+<figure>
+  <img src="../../llm_myths_1/min_cycles_en_vs_jp.png" alt="increasing_steps" />
+</figure>
+
+
+</p>
+<p>Now I encourage the reader to compare the distribution with the previous ones. I would say that the English-prompt minimal cycle length distribution looks very much like a trained model and the Japanese-prompt minimal cycle length distribution echoes well with the untrained one.</p>
+<p>The take-away is that the looping on shorter cycles is an indication of being under-trained, and is an artifact of early training process. In the real world scenarios, the use cases that we care about might not be as dramatic as English vs Japanese where the latter is almost non-existent in the training data. But we can imagine that a partially trained sampling path still has the tendency of being attracted into longer cycles, as the previous charts shown.</p>
+<h2 id="the-mathematical-horizon-of-infinite-context-sampling-is-a-degenerated-process">
+  The mathematical horizon of infinite context: sampling is a degenerated process
+  <a href="#the-mathematical-horizon-of-infinite-context-sampling-is-a-degenerated-process" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>There has been an ongoing race of infinite context length, and everybody is pushing out super-long-context models such as Gemini&rsquo;s famous 3M context window mode. But does the model still make sense to let the context length tend to infinity in the mathematical sense?</p>
+<p>To simplify the matters, let us look at what happens for the attention module during autoregressive sampling.</p>
+<p>Without loss of generality, we can assume the number of attention head to be 1 since they are parallel streams of feature computations. Let $s, d$ be the sequence length and the head dimension. The autoregressive generation is usually implemented with the presence of kv-cache. This viewpoint is very suitable to consider it as a dynamical system, or even a generalized RNN with infinite dimension of states in the categorical sense of <a href="https://en.wikipedia.org/wiki/Direct_limit">direct limits</a>.</p>
+<p>At the token position $s$, given a query vector $q_s\in \mathbb R^{d}$, and a series of cached key and value vectors $k_i, v_j\in \mathbb R^{d}, 1\leq i, j\leq s$, during the autoregressive generation the attention scores are first computed in the following form:</p>
+<p>$$(w_1, \cdots, w_s) = \text{softmax}(\dfrac{\langle q_s, k_1 \rangle}{\sqrt{d}}, \cdots, \dfrac{\langle q_s, k_s \rangle}{\sqrt{d}}) \in I^{s},$$</p>
+<p>where $I = (0, 1)$ is the open unit interval. The two ends are exclusive because logits are finite.</p>
+<p>The attention output at token position $s$ is then calculated by $o_s = \sum\limits_{i=1}^{s} w_i v_i$. Most of the other ops before and after (layer norms, dense, activations, etc.) are respecting the token positions.</p>
+<p>To simplify the matter as a start, let us assume we have only 1 single layer and $q, k, v$ come right out of embeddings and have only finitely many possible values. At position $s$, the kv-cache consists of $k_1, \cdots, k_{s-1}$ and $v_1, \cdots, v_{s-1}$. We may treat them as a constant prefix and regard $q_s, k_s, v_s$ as variables depending on the token at position $s$. Ranging over all possibilities of $q, k$ over the finite vocabulary, $\dfrac{\langle q, k \rangle}{\sqrt{d}}$ has an upper bound. Since we can let $s$ to be sufficiently large, depending on the prefix, there exists an $s$ such that</p>
+<p>$$\sum\limits_{i=1}^{s-1} \text{exp}(\dfrac{\langle q_s, k_i \rangle}{\sqrt{d}}) \gg \dfrac{\langle q_s, k_s \rangle}{\sqrt{d}}$$</p>
+<p>for all possible choices of $q_s, k_s$.</p>
+<p>This means that the attention score computed with or without the token at position $s$ can be arbitrarily close. The same applies to $(q_{s+1}, k_{s+1})$ once the $(s+1)$-th token is determined, and it goes even further as long as the prompt length is sufficiently longer than the generation length. It would be a good math exercise for undergrads to spell out the full argument for a full-fledged transformer architecture. The end result is the following:</p>
+<blockquote>
+<p>When the prompt length is sufficiently large and sufficiently greater than the generation length, the newly generated tokens can affect the attention scores (thus the attention output) for an arbitrarily small amount. As a consequence, for a limited range of generations, the sampling will no longer depend on the newly generated tokens and the process degenerates into <strong>Markov with only the current token id as the state</strong>.</p>
+</blockquote>
+<p>Since the sampling degenerates into a Markov process with transitions only between token ids, loop happens when we do greedy sampling since the set of states can be divided into finite union of periodic orbits.</p>
+<h3 id="does-the-math-explains-everything">
+  Does the math explains everything?
+  <a href="#does-the-math-explains-everything" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>No. Although the approximately Markov process is observable if you try the experiments with some care, it still doesn&rsquo;t explain what happens when the generation length is long enough (or even tend to infinity). Also, we still do not know how the gradient descent plays a role and whether there is some sort of global circuit that gives rise to periodic orbits even when attention scores can be influenced by the newly generated tokens. There are definitely more to it along this direction.</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<hr>
+			<h1>LATEST POSTS</h1>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_2_perplexity_and_surprise/">LLM myths 2: perplexity and surprise</a></li>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">LLM myths 1: why does LLM generate infinite loops</a></li>
+				
+				<li><a href="/posts/2024-06-30-mcts-and-theorem-proving/">MCTS and Theorem proving</a></li>
+				
+				<li><a href="/posts/2023-03-11-longer_than_chinchilla/">Longer than Chinchilla</a></li>
+				
+				<li><a href="/posts/2023-02-27-breaking-the-loss-barrier/">Breaking the Generalization Barrier</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+	<p>&copy; 2024 <a href="https://honglu.fan/"><b>Honglu Fan</b></a>.
+	<a href="https://github.com/honglu2875"><b>Github</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>

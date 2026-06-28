@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>MCTS and Theorem proving</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	
+
+
+<header>
+	
+	<div class="title_banner">
+                <div class="header_block">
+		+--------------+<br>
+		|&nbsp; <a href="https://honglu.fan/">Honglu Fan</a> &nbsp;|<br>
+		+--------------+
+                </div>
+		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
+		<script>
+			fetch('deploy_the_world_saving_agi').then(function(response){
+				response.text().then(function(value){
+					document.getElementById('subtitle').innerHTML = 
+                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+				}
+                        );
+		</script>
+	</div>
+	<p>
+        <div class="menu">
+	<nav>
+	=========================================================<br>
+	<div class="menu_text">
+		··· 
+		
+			
+			<a href="/"><b>Home</b></a> ···
+			
+			<a href="/whoami"><b>Whoami</b></a> ···
+			
+			<a href="/posts/"><b>Posts</b></a> ···
+			
+			<a href="/categories/"><b>Categories</b></a> ···
+			
+			<a href="/tags/"><b>Tags</b></a> ···
+			
+	</div>
+	</nav>
+	=========================================================
+	</p>
+        </div>
+
+	
+</header>
+
+	
+	<main>
+		<article>
+			<h1>MCTS and Theorem proving</h1>
+			<b><time>30.06.2024 05:16</time></b>
+		       
+		           <a href="/tags/reinforcement-learning">Reinforcement Learning</a>
+        	       
+		           <a href="/tags/math-&#43;-ai">Math &#43; AI</a>
+        	       
+
+			<div>
+				<p>With the increasing maturity of the <a href="https://github.com/leanprover/lean4.git">Lean theorem prover</a>, many people have attempted the combination of reinforcement learning (RL) and theorem proving. Among many attempts, the <a href="https://arxiv.org/abs/2205.11491">Hypertree proof search</a> has been quite notable which I admire a lot personally.</p>
+<p>Looking around, the general field of neural reasoning has also becoming a more prominent field since logical reasoning has been one of a few domains where LLM continues to struggle towards a satisfactory degree of reliability. A nice recent survey is <a href="https://arxiv.org/html/2404.09939v1">this</a>.</p>
+<p>In this writing, I do not attempt to describe anything that outperforms something (which IMHO really kills the joy of research and an excess emphasis leads to a broad sense of &ldquo;overfitting&rdquo;). The goal is to jot down some thoughts and share some cool charts in my personal attempt of the &ldquo;deep MCTS&rdquo; + &ldquo;Lean prover&rdquo; approach. It needs to be noted that some related research collaboration is still up in the air. <strong>As a disclaimer, I do not share codes and I will only write about either 1. open-source materials or 2. strictly my own work.</strong></p>
+<h2 id="overview">
+  Overview
+  <a href="#overview" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>As is commonly known, to implement something using RL, you just need to define a Markov Process which requires:</p>
+<ul>
+<li>An observation space;</li>
+<li>An action space;</li>
+<li>A reward function given an observation and an action.</li>
+</ul>
+<p>The rough roadmap here is very clear:</p>
+<ul>
+<li>Define some sort of observations and actions around the Lean 4 engine, and use it as an iteration function.</li>
+<li>Use any signals but mostly focusing on the proof validity to define some sort of reward function.</li>
+<li>Plug in your favorite RL algorithm and profit.</li>
+</ul>
+<p>There are many variants you can try in each step. It is quite doable to just come up with a weird combination to claim novelty. With some p-hacking, one can also publish a paper around it. But I am a dumb person and I stick to the dumbest plan:</p>
+<ul>
+<li>Narrow down the theorem proving task to a very small subset.</li>
+<li>Use a subset of <a href="https://leanprover.github.io/theorem_proving_in_lean4/tactics.html">tactics</a> as the action space. And use a simple 0/1 reward on a successful sequence of tactics. Note that Hypertree proof search already did this, and <a href="https://leanprover-community.github.io/archive/stream/219941-Machine-Learning-for-Theorem-Proving/topic/ML.20for.20Lean.3A.20How.20to.20do.20it.3F.html">people already tried to do RL on tactics</a> in Lean 3 back in early 2020.</li>
+<li>Write a simple Lean 4 REPL wrapper that fits into the Gym (or nowadays it is called Gymnasium) library.</li>
+<li>Implement deep MCTS (i.e., some sort of AlphaZero)
+<ul>
+<li>Use the <a href="https://github.com/google-deepmind/mctx">mctx</a> which is a simple and highly modular library that handles vectorized tree search, backtracking, policy updating, etc.</li>
+<li>Put in a neural network to do
+<ol>
+<li>Inference - providing a prior;</li>
+<li>Training - distilling the MCTS-improved posterior.</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>Given that everybody and their mom starts to hear about LLM, I specifically chose transformer as the neural network. An observation will just be the theorem statement (e.g. &ldquo;a ∧ b ↔ b ∧ a&rdquo;), and it will be encoded by a custom tokenizer.</p>
+<h2 id="the-logic-side">
+  The logic side
+  <a href="#the-logic-side" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Back in my math career, I have been having a (wrong) impression that:</p>
+<ol>
+<li>we were still so far from formalizing the most recent and exciting math breakthrough such as the 20-century boom in Algebraic Topology and the monumental legacy of Grothendieck;</li>
+<li>if auto-theorem-proving were to apply to anything at research-level, it will not be human-readable and help human researchers.</li>
+</ol>
+<p>I trust that I was not alone. So you can imagine my shock when I first saw that the foundation of commutative algebra and algebraic geometry was nicely formalized in the community mathlib3. This is very similar to the AlphaZero-moment when a decade ago, you were probably told by your Olympiad Informatics coach that the game of Go cannot be solved in 50 years.</p>
+<p>Back to the business. The most important scope to define is what theorems do the RL agents want to prove.</p>
+<h3 id="what-to-prove">
+  What to prove
+  <a href="#what-to-prove" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>Now, many people want to just reach AGI, so people just grab everything in the community <a href="https://github.com/leanprover-community/mathlib4">mathlib</a> because why not?</p>
+<p>But do we really want to <strong>start with</strong> all domains in mathlib and train on all tactics? Do I first SFT on a random subset as seeds? Or do I restrict to a domain, or even a much smaller logical system to focus on more visible in-domain generalization?</p>
+<p>Also, it leads to the question of sampling: how do we sample a theorem as the initial observation for the Lean engine? If we use synthesized theorems, how do we synthesize ground-truth theorem-proof pairs to either generate initial states or assist unsupervised RL by providing some baseline performance (due to the extreme sparsity of signals, some baseline-SFT is a very standard practice)?</p>
+<p>I will not expand here to risk touching my colleagues&rsquo; works without consent. But here I just want to remark that</p>
+<ul>
+<li>Defining the scope of such project properly already requires a lot of understanding of mathematical logic, and is already a fun thing to keep your brain busy.</li>
+</ul>
+<p>Here are some keywords of widely known concepts: <a href="https://en.wikipedia.org/wiki/First-order_logic">first-order logic</a>, <a href="https://en.wikipedia.org/wiki/Propositional_calculus">propositional logic</a>, <a href="https://en.wikipedia.org/wiki/Formal_system#Deductive_system">deductive system</a>, theorem generators. It is possible to come up with a comfortable restrictions and a nice theorem generator for some small-scale fun to work.</p>
+<h3 id="the-action-space">
+  The action space
+  <a href="#the-action-space" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>Now, let us say that we have a well-defined and closed subset of statements that Lean supports. Actions are tactics, but some tactics requires arguments. So we need to:</p>
+<ol>
+<li>
+<p>Write an IR (in my case, a Python IR) that</p>
+<ul>
+<li>abstracts away symbols and expressions,</li>
+<li>parses from Lean statements (states), and</li>
+<li>renders into Lean statements.</li>
+</ul>
+<p>In other words, we build a simple IR mainly for parsing (because Lean does the dirty job of transformation for us).</p>
+</li>
+<li>
+<p>Limit the number of variables (say, 10), and distinguish individual tactics that takes different variables (such as <code>apply a</code>, <code>apply b</code>, <code>apply c</code>, &hellip;).</p>
+</li>
+</ol>
+<p>We could try to find a very small logic system and countably many actions (due to unboundedness of variables) that are sufficient to prove every true statement. One of the challenges is that the length and the number of variables can grow during a proof, which make it unbound even during an episode. I am not aware of any result talking about an upper bound of necessary new variables given a set of tactics in a logic system.</p>
+<p>But empirically, for some fun to happen, we can just settle with some arbitrary restrictions such as a maximum of 10 variables in a statement, and a maximum of 20 variables in the actions. Again, I do not intend to go into details in this part.</p>
+<h3 id="the-reward">
+  The reward
+  <a href="#the-reward" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>I am a big fan of simple 0/1 reward based on the final outcome. Sophisticated heuristics is not only unnecessary but also encouraging reward-hacking. Typical examples include a mild reward boost of shorter statement, or &ldquo;hey, this action turns a true statement to an unprovable statement so let&rsquo;s put a -100 reward for it!&rdquo;. There are easily counter-arguments for each of artificial reward that does not come directly from the proof-checking engine.</p>
+<p>In other words, heuristic-based rewards or fine-grained rewards usually work to a limited extent to battle either sparse signals or ambiguous goals. But it is usually not the ultimate solution for a fully unsupervised routine whose number of rollout need to scale.</p>
+<h2 id="the-fun-part---the-experiments">
+  The fun part - the experiments
+  <a href="#the-fun-part---the-experiments" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Without being able to share codes and the exact setup, let us say that I am training a network who predicts a restricted set of tactics targetting a restricted but infinite set of basic logic statements where</p>
+<ul>
+<li>if the number of variables could have gone to infinite, the set of tactics would have been able to cover all proofs;</li>
+<li>there exists ways to algorithmically generate ground-truth proposition-proof pairs easily, though you cannot control what the proposition is until the end of the algorithm.</li>
+</ul>
+<p>As mentioned, I implemented the JAX-version of deep-MCTS with the help of <code>mctx</code> library (but inevitably with a few monkey patches). To recall the standard procedure of deep-MCTS, it is to repeat the following cycle:</p>
+<ul>
+<li>Running inference on the network to provide
+<ol>
+<li>a probability distribution of each action (tactic) as a prior.</li>
+<li>a value (here we choose the Q-value) of the current observation that aggregates future rewards in an exponentially-weighted manner.</li>
+</ol>
+</li>
+<li>Running the MCTS for a fixed amount of times to improve the prior and form a posterior.</li>
+<li>Sample through the observations, collect many posteriors in a so-called &ldquo;replay buffer&rdquo; to form a set of training data consisting of many minibatches.</li>
+<li>Train and improve the network on the collected posterior.</li>
+</ul>
+<p>In addition, a collection of more than 10k synthetic &ldquo;theorems&rdquo; are generated <strong>whose truthfulness is guaranteed</strong>. Also, their proofs are accessible, so one may choose to</p>
+<ul>
+<li>mix the ground-truth theorems into the initial replay buffer to provide early signals.</li>
+</ul>
+<p>But since we have a healthy mix of difficulties (where many only needs 1-single application of a tactics), I did not adopt this method.</p>
+<p>A couple key points regarding the synthetic theorems in my setup:</p>
+<ul>
+<li>The synthetic theorems serve as the initial states for the Lean engine. More precisely, every time the environment is reset, a random synthetic theorem is sampled as the initial observation.</li>
+<li><strong>The model is never trained on an unprovable statement</strong>.</li>
+</ul>
+<h3 id="evaluation">
+  Evaluation
+  <a href="#evaluation" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>A hand-picked set of around 18 theorems are chosen with varying difficulties. It is also roughly ordered by difficulties so the first theorem requires the minimal amount of steps, and the last theorem takes more steps.</p>
+<p>It is also made sure that they do not appear among the synthetic theorems.</p>
+<h3 id="training-metrics">
+  Training metrics
+  <a href="#training-metrics" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>Here is a combined picture of several training runs with different seeds and parameters.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/eval_vs_policy_loss.png" alt="eval_vs_policy_loss" />
+</figure>
+
+
+</p>
+<p>Here, &ldquo;num_proofs&rdquo; is the number out of the evaluation theorems that can be 0-shot proven by directly using the neural network policy. The overall policy loss function consists of the action-head cross-entropy loss and the MSE value loss.</p>
+<p>We can see that the evaluation result roughly correlates with the policy loss. Also in the pink run, arguably the sharp increase in evaluation happens during the &ldquo;double descent&rdquo; where loss drop is temporarily accelerated.</p>
+<p>A more fine-grained picture is the following.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/various_losses.png" alt="various_losses" />
+</figure>
+
+
+</p>
+<p>We can see that the value loss does not necessarily need to go down. A direct contribution is perhaps that the coefficient for the MSE value loss is too low. But turning it up seems to have negative impact. Value estimates are usually a moving target at early stage since it is largely policy-dependent and the policy keeps changing. So I can personally settle with not fully understanding its impact here.</p>
+<p>Digging into one run, we can see how the evaluation evolves.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/eval_action_distribution.png" alt="eval_action_distribution" />
+</figure>
+
+
+</p>
+<p>The &ldquo;proof_steps&rdquo; chart is how the proof length of each theorem (limited to 12) evolves over training. The more blue it shows, the longer its proof is.</p>
+<p>We can see the first theorem starts out with the longest length, and gradually become shorting length. Also, easier theorem generally gets solved earlier (recall that they are roughly ordered by difficulties). And occasionally, the policy regresses (which the network will never know because the evaluation theorems are not among the synthetic initial observations).</p>
+<h2 id="even-more-fun---playing-with-the-trained-agents">
+  Even more fun - playing with the trained agents
+  <a href="#even-more-fun---playing-with-the-trained-agents" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>A big effort of mine is to code up the following command-line UI for investigating the policy of the trained network.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/UI.png" alt="UI" />
+</figure>
+
+
+</p>
+<p>For this simple theorem, it still takes 2 steps to solve:</p>
+<p>
+<figure>
+  <img src="/mcts_lean/solution.png" alt="solution" />
+</figure>
+
+
+</p>
+<p>One may notice that the network is fairly certain about its choice in such simple cases. In fact, for most of the simple theorems that I can type and manually verify, it can reach some sort of proof with such a degree of confidence.</p>
+<h3 id="generalize-from-true-statements-to-unprovable-statements">
+  Generalize from true statements to unprovable statements
+  <a href="#generalize-from-true-statements-to-unprovable-statements" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>An artifact of being only trained on true statements is that it captures structural similarities and generalize to unprovable statements. Not saying it is bad (because it is simply ill-defined to ask Lean engine tactics to operate on an unprovable statement), but may be cool to watch a simple example:</p>
+<p><code>(a-&gt;b) =&gt; (a-&gt;b)</code> is a trivial statement and it solves it using two steps.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/simple_proof.png" alt="simple_proof" />
+</figure>
+
+
+</p>
+<p>But I can easily change it into <code>(a-&gt;b) =&gt; (b-&gt;a)</code> which is unprovable. Turns out the model gave a very similar solution.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/unprovable.png" alt="unprovable" />
+</figure>
+
+
+</p>
+<p>As a matter of fact, the attention weights already show that the model confuse the two cases big time (first-layer first-head):</p>
+<p>
+<figure>
+  <img src="/mcts_lean/right_vs_wrong.png" alt="right_vs_wrong" />
+</figure>
+
+
+</p>
+<p>This is the picture of attention weights side-by-side for <code>(a-&gt;b)=&gt;(a-&gt;b)</code> and <code>(a-&gt;b)=&gt;(b-&gt;a)</code>. Can you spot the differences?</p>
+<p>On the other hand, this may also indicate that the model relies heavily on pattern matching, maybe using general structure signals such as brackets and operators.</p>
+<h3 id="uncertainty-on-unprovable-statements">
+  Uncertainty on unprovable statements
+  <a href="#uncertainty-on-unprovable-statements" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>When it is evaluated on some out-of-distribution(OOD) data samples (unprovable statement), it can &ldquo;show hesitance&rdquo;. It is generally well-known that the classification predictions tend to have a higher entropy on OOD samples.</p>
+<p>
+<figure>
+  <img src="/mcts_lean/uncertainty.png" alt="uncertainty" />
+</figure>
+
+
+</p>
+<p>
+<figure>
+  <img src="/mcts_lean/uncertainty_2.png" alt="uncertainty_2" />
+</figure>
+
+
+</p>
+<h3 id="attention">
+  Attention
+  <a href="#attention" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>Here is the first-layer and first-head attention weight under the following sequence:</p>
+<pre tabindex="0"><code>position: 0    1    2    3     4    5    6     7    8    9   10   11   11   12   13     14
+token:   &#39;⇒&#39;, &#39;(&#39;, &#39;(&#39;, &#39;p0&#39;, &#39;∧&#39;, &#39;(&#39;, &#39;p0&#39;, &#39;→&#39;, &#39;⊥&#39;, &#39;)&#39;, &#39;)&#39;, &#39;→&#39;, &#39;⊥&#39;, &#39;)&#39;, &#39;\n&#39;, &#39;[END]&#39;
+</code></pre><p>
+<figure>
+  <img src="/mcts_lean/first_attn.png" alt="attn" />
+</figure>
+
+
+</p>
+<p>Not sure how much can be read into it, one notable thing is that the first layer attention tends to use open or close bracket as a pivot (here the lighter vertical is at position 5 corresponding to the &lsquo;(&rsquo; after the &lsquo;∧&rsquo;.</p>
+<h2 id="final-words">
+  Final words
+  <a href="#final-words" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Overall, this is not a fully-fledged research paper and I am merely sharing the fun. Plus that this is a single highly-overfit model with a not-so-careful experiment setup. But I personally think that many thought-provoking questions are surfacing and screaming further study.</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<hr>
+			<h1>LATEST POSTS</h1>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_2_perplexity_and_surprise/">LLM myths 2: perplexity and surprise</a></li>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">LLM myths 1: why does LLM generate infinite loops</a></li>
+				
+				<li><a href="/posts/2024-06-30-mcts-and-theorem-proving/">MCTS and Theorem proving</a></li>
+				
+				<li><a href="/posts/2023-03-11-longer_than_chinchilla/">Longer than Chinchilla</a></li>
+				
+				<li><a href="/posts/2023-02-27-breaking-the-loss-barrier/">Breaking the Generalization Barrier</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+	<p>&copy; 2024 <a href="https://honglu.fan/"><b>Honglu Fan</b></a>.
+	<a href="https://github.com/honglu2875"><b>Github</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>

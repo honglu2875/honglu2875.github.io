@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta name="generator" content="Hugo 0.140.0">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Honglu Fan</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	<link rel="alternate" type="application/rss+xml" href="/index.xml" title="Honglu Fan">
+</head>
+<body>
+	
+
+
+<header>
+	
+	<div class="title_banner">
+                <div class="header_block">
+		+--------------+<br>
+		|&nbsp; <a href="https://honglu.fan/">Honglu Fan</a> &nbsp;|<br>
+		+--------------+
+                </div>
+		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
+		<script>
+			fetch('deploy_the_world_saving_agi').then(function(response){
+				response.text().then(function(value){
+					document.getElementById('subtitle').innerHTML = 
+                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+				}
+                        );
+		</script>
+	</div>
+	<p>
+        <div class="menu">
+	<nav>
+	=========================================================<br>
+	<div class="menu_text">
+		··· 
+		
+			
+			<a href="/"><b>Home</b></a> ···
+			
+			<a href="/whoami"><b>Whoami</b></a> ···
+			
+			<a href="/posts/"><b>Posts</b></a> ···
+			
+			<a href="/categories/"><b>Categories</b></a> ···
+			
+			<a href="/tags/"><b>Tags</b></a> ···
+			
+	</div>
+	</nav>
+	=========================================================
+	</p>
+        </div>
+
+	
+</header>
+
+	
+	<main>
+		
+		
+			<article>
+	<h1><a href="https://honglu.fan/posts/2024-10-27-llm_myths_2_perplexity_and_surprise/">LLM myths 2: perplexity and surprise</a></h1>
+	<b><time>27.10.2024 20:58</time></b>
+	
+	<a href="/tags/language-models">Language Models</a>
+	
+	<a href="/tags/llm-myths">LLM myths</a>
+	
+	<div>
+		<p>Given a language model, people call the mean of the negative log-likelihood of a sentence the &ldquo;perplexity&rdquo;. As the word indicates, it is supposed to show whether the language model is perplexed or surprised by the sentence. Sometimes, people modify the mean and also talk about &ldquo;the level of surprise&rdquo; on a small range of tokens or a single token. It is a simple explanation that gets the concept across to a wide audience as one of many ways of anthromorphizing language models. Where does it come from and does it really agree with the human sense of &ldquo;surprise&rdquo;?</p>
+		
+			<a href="https://honglu.fan/posts/2024-10-27-llm_myths_2_perplexity_and_surprise/">Read more...</a>
+		
+	</div>
+</article>
+
+		
+			<article>
+	<h1><a href="https://honglu.fan/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">LLM myths 1: why does LLM generate infinite loops</a></h1>
+	<b><time>27.10.2024 19:57</time></b>
+	
+	<a href="/tags/language-models">Language Models</a>
+	
+	<a href="/tags/llm-myths">LLM myths</a>
+	
+	<div>
+		<p>Looping is fairly common when sampling from an LLM. We normally do not want it to happen and there has been many tricks trying to make it behave such as repetition penalties or hard-coded loop detections, but their effectiveness is debatable. The explanation of this phenomenon seems scarce in literature and it might at first feels like another bug in our day-to-day data/model engineering without anything deep.</p>
+<p>But for modern LLMs without ad-hoc outer logics to guard its output, sampling loops has been out there with us all along. For example, you can easily induce Deepseek model into a loop by writing this prompt (as of Oct 30th, 2024): &ldquo;Write me a bunch of bullet points.&rdquo;</p>
+		
+			<a href="https://honglu.fan/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">Read more...</a>
+		
+	</div>
+</article>
+
+		
+			<article>
+	<h1><a href="https://honglu.fan/posts/2024-06-30-mcts-and-theorem-proving/">MCTS and Theorem proving</a></h1>
+	<b><time>30.06.2024 05:16</time></b>
+	
+	<a href="/tags/reinforcement-learning">Reinforcement Learning</a>
+	
+	<a href="/tags/math-&#43;-ai">Math &#43; AI</a>
+	
+	<div>
+		<p>With the increasing maturity of the <a href="https://github.com/leanprover/lean4.git">Lean theorem prover</a>, many people have attempted the combination of reinforcement learning (RL) and theorem proving. Among many attempts, the <a href="https://arxiv.org/abs/2205.11491">Hypertree proof search</a> has been quite notable which I admire a lot personally.</p>
+<p>Looking around, the general field of neural reasoning has also becoming a more prominent field since logical reasoning has been one of a few domains where LLM continues to struggle towards a satisfactory degree of reliability. A nice recent survey is <a href="https://arxiv.org/html/2404.09939v1">this</a>.</p>
+		
+			<a href="https://honglu.fan/posts/2024-06-30-mcts-and-theorem-proving/">Read more...</a>
+		
+	</div>
+</article>
+
+		
+			<article>
+	<h1><a href="https://honglu.fan/posts/2023-03-11-longer_than_chinchilla/">Longer than Chinchilla</a></h1>
+	<b><time>11.03.2023 20:24</time></b>
+	
+	<a href="/tags/language-models">Language Models</a>
+	
+	<div>
+		<p>In large language models pretraining, it takes a massive computing
+budget for every single training run.</p>
+<p>the Chinchilla optimal bounds were
+proposed in the paper <a href="https://www.deepmind.com/publications/an-empirical-analysis-of-compute-optimal-large-language-model-training">An empirical analysis of compute-optimal large language model training</a>.
+A very common misunderstanding about Chinchilla scaling law is that it seems to impose
+an upper bound of the amount of token one should train for given a fixed parameter count.
+But it really is about the optimal tradeoff between the token amount and the model size,
+given a fixed computing budget. In practice, it might give a good reference number of
+tokens, but a general rule of thumb is still to train for as many tokens as possible
+before the training loss or eval loss starts to diverge.</p>
+		
+			<a href="https://honglu.fan/posts/2023-03-11-longer_than_chinchilla/">Read more...</a>
+		
+	</div>
+</article>
+
+		
+			<article>
+	<h1><a href="https://honglu.fan/posts/2023-02-27-breaking-the-loss-barrier/">Breaking the Generalization Barrier</a></h1>
+	<b><time>27.02.2023 20:21</time></b>
+	
+	<a href="/tags/language-models">Language Models</a>
+	
+	<div>
+		<p>Have been working with Carper folks on OpenELM and diff models (see <a href="https://carper.ai/diff-models-a-new-way-to-edit-code/">the blog</a>) for quite a while. In particular, I have spent a lot of time finetuning diff models, which is based on <a href="https://github.com/salesforce/CodeGen">CodeGen</a> and finetuned on GitHub commit data (filtered down to 1.2M documents totalling about 1B tokens) to automatically suggest commits.</p>
+<p>There are many interesting things happening during the model training. One specific thing I am documenting here is a pheonomenon about the loss curves, how the model developed its ability and the emergence of various different levels of loss plateau/generalization barrier/critical submanifold or whatever you may call it.</p>
+		
+			<a href="https://honglu.fan/posts/2023-02-27-breaking-the-loss-barrier/">Read more...</a>
+		
+	</div>
+</article>
+
+		
+		<div>
+
+1 of 1
+
+</div>
+
+	</main>
+
+	<footer>
+	<p>&copy; 2024 <a href="https://honglu.fan/"><b>Honglu Fan</b></a>.
+	<a href="https://github.com/honglu2875"><b>Github</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>

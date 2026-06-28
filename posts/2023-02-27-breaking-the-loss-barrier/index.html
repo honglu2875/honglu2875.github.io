@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Breaking the Generalization Barrier</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	
+
+
+<header>
+	
+	<div class="title_banner">
+                <div class="header_block">
+		+--------------+<br>
+		|&nbsp; <a href="https://honglu.fan/">Honglu Fan</a> &nbsp;|<br>
+		+--------------+
+                </div>
+		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
+		<script>
+			fetch('deploy_the_world_saving_agi').then(function(response){
+				response.text().then(function(value){
+					document.getElementById('subtitle').innerHTML = 
+                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+				}
+                        );
+		</script>
+	</div>
+	<p>
+        <div class="menu">
+	<nav>
+	=========================================================<br>
+	<div class="menu_text">
+		··· 
+		
+			
+			<a href="/"><b>Home</b></a> ···
+			
+			<a href="/whoami"><b>Whoami</b></a> ···
+			
+			<a href="/posts/"><b>Posts</b></a> ···
+			
+			<a href="/categories/"><b>Categories</b></a> ···
+			
+			<a href="/tags/"><b>Tags</b></a> ···
+			
+	</div>
+	</nav>
+	=========================================================
+	</p>
+        </div>
+
+	
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Breaking the Generalization Barrier</h1>
+			<b><time>27.02.2023 20:21</time></b>
+		       
+		           <a href="/tags/language-models">Language Models</a>
+        	       
+
+			<div>
+				<p>Have been working with Carper folks on OpenELM and diff models (see <a href="https://carper.ai/diff-models-a-new-way-to-edit-code/">the blog</a>) for quite a while. In particular, I have spent a lot of time finetuning diff models, which is based on <a href="https://github.com/salesforce/CodeGen">CodeGen</a> and finetuned on GitHub commit data (filtered down to 1.2M documents totalling about 1B tokens) to automatically suggest commits.</p>
+<p>There are many interesting things happening during the model training. One specific thing I am documenting here is a pheonomenon about the loss curves, how the model developed its ability and the emergence of various different levels of loss plateau/generalization barrier/critical submanifold or whatever you may call it.</p>
+<h2 id="what-are-the-diff-models">
+  What are the diff models
+  <a href="#what-are-the-diff-models" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>One should totally read the <a href="https://carper.ai/diff-models-a-new-way-to-edit-code/">Carper blog post</a> on the details, but here is a short summary of what it does:</p>
+<p>The diff model takes in prompts of the following format:</p>
+<blockquote>
+<p>&lt;NME&gt; filename</p>
+</blockquote>
+<blockquote>
+<p>&lt;BEF&gt; file content (mostly codes)</p>
+</blockquote>
+<blockquote>
+<p>&lt;MSG&gt; commit message</p>
+</blockquote>
+<p>and generates a diff that patches to the given file in the following format:</p>
+<blockquote>
+<p>&lt;DFF&gt; diff patch</p>
+</blockquote>
+<p>A simple example is the following:</p>
+<pre tabindex="0"><code>&lt;NME&gt; parity.py
+&lt;BEF&gt; def parity(b1,b2,b3,b4):
+    &#34;&#34;&#34;Return binary parity of a sequence of input bits. Return 0 for even parity, 1 for odd parity.&#34;&#34;&#34;
+    bit_sum = sum([c1,b2,b3,b4])
+    return bit_sum % 2
+&lt;MSG&gt; Fixed bugs
+</code></pre><p>And a perfect diff model we look for should 0-shot generate the following.</p>
+<pre tabindex="0"><code>&lt;DFF&gt; @@ -1,4 +1,4 @@
+def parity(b1,b2,b3,b4):
+     &#34;&#34;&#34;Return binary parity of a sequence of input bits. Return 0 for even parity, 1 for odd parity.&#34;&#34;&#34;
+-    bit_sum = sum([c1,b2,b3,b4])
++    bit_sum = sum([b1,b2,b3,b4])
+     return bit_sum % 2
+</code></pre><p>A successful diff model requires the following three abilities:</p>
+<ul>
+<li>a very good understanding of coding languages,</li>
+<li>an understanding of the natural language instructions in the commit message after &lt;MSG&gt;, and</li>
+<li>being able to refer back to the right parts of the context in &lt;BEF&gt; and generate the right diff format.</li>
+</ul>
+<p>The complicated nature of the model is making things more interesting, especially in terms of how the model develops its ability.</p>
+<h2 id="loss-curves-and-two-bayes-errors">
+  Loss curves, and two Bayes errors?
+  <a href="#loss-curves-and-two-bayes-errors" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>
+<figure>
+  <img src="/various_2b.png" alt="2b-loss" />
+</figure>
+
+
+</p>
+<p>Here are the loss curves of a few runs on diff 2B models using the NeoX megatron library. They are trained using the same GitHub commit dataset, but differed in the hyper-parameters:</p>
+<ul>
+<li>blue run was trained with lr=3e-5, starting from Salesforce CodeGen 2B model</li>
+<li>brown run was trained with lr=1e-4 with the same pretrained model</li>
+<li>orange run was trained with lr=1e-3 with the same pretrained model</li>
+</ul>
+<p>Just like most of the neural network training, each loss curve converges towards an (empirical) limit, which is usually supposed to be a hypothetical Bayes error dependent on the dataset and the model architecture. But by putting them together, we observe</p>
+<ul>
+<li>the two runs with lower learning rates stabilized at a similar level,</li>
+<li>the run with higher learning rate stabilized at a much lower level.</li>
+</ul>
+<p>In the traditional ML theory, the Bayes error is the lower bound of the prediction error that one can get for any classifier given a fixed classification problem and a fixed data population. Empirically, people take the observable &ldquo;limit&rdquo; during training as the Bayes error but it apparently does not apply here. It is not utterly surprising as we are treading with non-convex optimizations. But on the other hand, if a mathematical quantity converges somewhere, it usually means something. We will see later that these two loss levels in fact correspond to distinct training milestones, and why this is a beautiful event worth documenting.</p>
+<h2 id="what-happens-on-the-two-levels">
+  What happens on the two levels
+  <a href="#what-happens-on-the-two-levels" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Upon investigating the checkpoints, the behaviors at the two levels are very different. The models at the higher level were unable to refer to the previous context in &lt;BEF&gt; and only generate from memorization, while the one at the lower level can perfectly copy the relevant file context and conform with the diff format. Here are a few sample generations of checkpoints (all temperatures were set at 0.7):</p>
+<p>Prompt:</p>
+<pre tabindex="0"><code>&lt;NME&gt; bug.py
+&lt;BEF&gt; def compare(x1, x2):
+    s1 = str(x1)    
+    s2 = str(x1) # Bug: x2 instead of x1
+    return s1 == s2
+&lt;MSG&gt; Fix bugs.
+</code></pre><p>Higher loss plateau generation:</p>
+<pre tabindex="0"><code>&lt;DFF&gt; @@ -1,1 +1,2 @@
++from d2 import scala
++from py36 import py4
++
++def setup(n2, data=2, n2, l2):
++    return r
++
++    def setup(self):
++    
+    return True
++    def test_fmt(self, path):
++        return [3],
++        return self.nodes.append(self.path + &#39;&#39;, &#39;w&#39;)
+</code></pre><p>Lower loss plateau generation:</p>
+<pre tabindex="0"><code>&lt;DFF&gt; @@ -1,1 +1,2 @@
++from dask import datasets
+ def compare(x1, x2):
+ s1 = str(x1)    
+</code></pre><p>With a few more tries, I noticed the distinctive differences between the two models:</p>
+<ul>
+<li>the higher loss plateau model has never been able to refer back to the context;</li>
+<li>whereas the lower loss plateau generation would at least copy a few consecutive lines from the previous context, no matter how long they were.
+There are apparently still a lot of data quality issues (especially can be seen from the fact that scala and dask prevails in python diff patches), but the behavior of refering back forms the foundation of potentially generating a diff patch.</li>
+</ul>
+<p>In this particular problem, what we are seeing might just be the barrier in the path of generalization and I might have broken it using a higher learning rate (though still need more careful experiments to make the statement hold). Some people termed it &ldquo;grokking&rdquo;, but I have not been able to go through those literatures.</p>
+<h3 id="thoughts">
+  Thoughts
+  <a href="#thoughts" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h3>
+<p>This might actually suggest some directions worth researching. Purely as a hunch, I am inclined to make a hypothesis</p>
+<ul>
+<li>when the samples in a text dataset have a structured format with nontrivial logic, different loss plateau might emerge and reflect the training landmarks.</li>
+</ul>
+<p>Several immediate questions in my mind would be:</p>
+<ol>
+<li>can we observe this in other tasks?</li>
+<li>can we tune the training so that multiple descent and different loss plateau happens, and their checkpoints form a human interpretable training landmarks?</li>
+<li>why doesn&rsquo;t adam help in pushing through the loss plateau? What is the geometry of the loss landscape here?</li>
+<li>what kind of structures in data samples can make this happen?</li>
+</ol>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<hr>
+			<h1>LATEST POSTS</h1>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_2_perplexity_and_surprise/">LLM myths 2: perplexity and surprise</a></li>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">LLM myths 1: why does LLM generate infinite loops</a></li>
+				
+				<li><a href="/posts/2024-06-30-mcts-and-theorem-proving/">MCTS and Theorem proving</a></li>
+				
+				<li><a href="/posts/2023-03-11-longer_than_chinchilla/">Longer than Chinchilla</a></li>
+				
+				<li><a href="/posts/2023-02-27-breaking-the-loss-barrier/">Breaking the Generalization Barrier</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+	<p>&copy; 2024 <a href="https://honglu.fan/"><b>Honglu Fan</b></a>.
+	<a href="https://github.com/honglu2875"><b>Github</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>

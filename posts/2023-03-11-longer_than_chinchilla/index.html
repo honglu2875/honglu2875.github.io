@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Longer than Chinchilla</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	
+
+
+<header>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" integrity="sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js" integrity="sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4" crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false}
+            ]
+        });
+    });
+</script>
+
+	<div class="title_banner">
+                <div class="header_block">
+		+--------------+<br>
+		|&nbsp; <a href="https://honglu.fan/">Honglu Fan</a> &nbsp;|<br>
+		+--------------+
+                </div>
+		<div class="subtitle_block"><p id="subtitle" class="subtitle"></p></div><br>
+		<script>
+			fetch('deploy_the_world_saving_agi').then(function(response){
+				response.text().then(function(value){
+					document.getElementById('subtitle').innerHTML = 
+                                        response.status != 200 ? "RuntimeError: CUDA Out of memory" : value;});
+				}
+                        );
+		</script>
+	</div>
+	<p>
+        <div class="menu">
+	<nav>
+	=========================================================<br>
+	<div class="menu_text">
+		··· 
+		
+			
+			<a href="/"><b>Home</b></a> ···
+			
+			<a href="/whoami"><b>Whoami</b></a> ···
+			
+			<a href="/posts/"><b>Posts</b></a> ···
+			
+			<a href="/categories/"><b>Categories</b></a> ···
+			
+			<a href="/tags/"><b>Tags</b></a> ···
+			
+	</div>
+	</nav>
+	=========================================================
+	</p>
+        </div>
+
+	
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Longer than Chinchilla</h1>
+			<b><time>11.03.2023 20:24</time></b>
+		       
+		           <a href="/tags/language-models">Language Models</a>
+        	       
+
+			<div>
+				<p>In large language models pretraining, it takes a massive computing
+budget for every single training run.</p>
+<p>the Chinchilla optimal bounds were
+proposed in the paper <a href="https://www.deepmind.com/publications/an-empirical-analysis-of-compute-optimal-large-language-model-training">An empirical analysis of compute-optimal large language model training</a>.
+A very common misunderstanding about Chinchilla scaling law is that it seems to impose
+an upper bound of the amount of token one should train for given a fixed parameter count.
+But it really is about the optimal tradeoff between the token amount and the model size,
+given a fixed computing budget. In practice, it might give a good reference number of
+tokens, but a general rule of thumb is still to train for as many tokens as possible
+before the training loss or eval loss starts to diverge.</p>
+<p>For billion-parameter models, training a model beyond the Chinchilla bound is
+usually slow and costly. For example, to train a 3B model on 1T tokens with 512 A-100
+with 30% MFU might take 4-5 days. Such experiences are rare and there are a lot
+of things that could go wrong when training
+on an extensive amount of tokens. To throw a few discrete data points into the
+sparse experiences that people have, here are some interesting failures I have experienced beyond the
+Chinchilla bound.</p>
+<h2 id="760m-with-weight-decays-10-of-lr">
+  760M with weight decays 10% of lr
+  <a href="#760m-with-weight-decays-10-of-lr" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>Chinchilla optimal size for a 760M model is somewhere around 10-15B tokens.
+This is a very small amount to train an LM from scratch. Practically, we almost have to go beyond
+Chinchilla.
+
+<figure>
+  <img src="/longer_than_chinchilla/760-divergence.png" alt="760m loss" />
+</figure>
+
+
+
+The model specs are the following:</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">parameter count</th>
+          <th style="text-align: left">context length</th>
+          <th style="text-align: left">batch size</th>
+          <th style="text-align: left">learning rate</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">760M</td>
+          <td style="text-align: left">8192</td>
+          <td style="text-align: left">8M tokens</td>
+          <td style="text-align: left">0.00025</td>
+      </tr>
+  </tbody>
+</table>
+<p>The training appeared to converge after 30k steps but unfortunately diverged at 50k (~400B tokens).
+There are many possible reasons. We have found that the weight decay is a subtle parameter and usually
+contributes to divergence after a large amount of tokens.</p>
+<p>But in this particular case, I would throw another
+theory out there:</p>
+<ul>
+<li>my learning rate was probably not decaying at the right rate.
+
+<figure>
+  <img src="/longer_than_chinchilla/760-lr.png" alt="760m lr" />
+</figure>
+
+
+</li>
+</ul>
+<p>We can see that at the divergent step (50k), the cosine lr decay is half-way through at about 1.7e-4. There
+are some other runs getting smooth landing with faster lr decay at below 1e-4.
+But it is just a theory, and there are also some smoother landing with lower weight decay.
+Wish I could perform a sweep to confirm which one is the case. But to get to 50k step (~400B tokens) is
+very costly.</p>
+<h2 id="3b-with-decoupled-lionw">
+  3B with decoupled-lionw
+  <a href="#3b-with-decoupled-lionw" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>
+<figure>
+  <img src="/longer_than_chinchilla/3b-divergence.png" alt="3b loss" />
+</figure>
+
+
+</p>
+<p>Two of them are normal runs. But let us pay attention to the red curve.</p>
+<p>This is a 3B model diverged at a very early stage (~60k steps). Model specs:</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">parameter count</th>
+          <th style="text-align: left">context length</th>
+          <th style="text-align: left">batch size</th>
+          <th style="text-align: left">learning rate</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left">3B</td>
+          <td style="text-align: left">8192</td>
+          <td style="text-align: left">8M tokens</td>
+          <td style="text-align: left">0.000256</td>
+      </tr>
+  </tbody>
+</table>
+<p>The optimizer is LionW and the weight decay is decoupled, meaning it is a fixed number instead of a quantity
+proportion to the learning rate. In this case, I used 0.0000256, 10% of the max learning rate.
+This was originally planned to be an ambitious run (trillion tokens) and it has a very slow warmup.
+
+<figure>
+  <img src="/longer_than_chinchilla/3b-divergence-lr.png" alt="3b lr" />
+</figure>
+
+
+
+At the divergence point, it has not even finished the warm-up! As a result, I am inclined to attribute the most
+likely cause to the decoupled weight decay as it was too high at warm-up period.</p>
+<p>Weight decay adds an extra term in the loss function about the l2-norm of the parameters:
+$$ l´ = l + c|| \theta ||^2 $$
+where $l$ is the original loss and $l´$ the $L2$-regularized loss.</p>
+<p>Let us take a look at what happened to the $L2$-norm:
+
+<figure>
+  <img src="/longer_than_chinchilla/3b-divergence-l2-norm.png" alt="3b l2 norm" />
+</figure>
+
+
+
+The optimization goal interpolates between the language model loss and the model weights. Despite the general hope that we could decrease both through gradient descent (provable for convex loss), reality showed us that both language model loss and the model weight went higher.</p>
+<p>My overall theory is that, the bad calibration of learning rate leads the training to be trapped inside a sharp ditch in the loss landscape. The loss jumps higher by bumping against walls and the cliff gets sharper (higher and higher gradient norms). The chart of the l2-norm of the gradient also support this:
+
+<figure>
+  <img src="/longer_than_chinchilla/3b-divergence-l2-norm-grad.png" alt="3b l2 grad" />
+</figure>
+
+
+
+The gradient clipping is set up at 1.0. Despite the gradient clipping, it is pretty obvious that the gradient norm wanted to curve up, showing steeper and steeper landscape.</p>
+<h2 id="13b-mostly-normal-but">
+  13B, mostly normal but&hellip;
+  <a href="#13b-mostly-normal-but" class="anchor">
+    <svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path class="anchoricon" d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg>
+  </a>
+</h2>
+<p>The last one is not about a divergence, but a crazy pop of loss which miraculously recovered after 100 steps. It happens during learning rate annealing:
+
+<figure>
+  <img src="/longer_than_chinchilla/13b-unstable-lr.png" alt="13b unstable lr" />
+</figure>
+
+
+
+It appears completely innocent, and recovers after about 100 training steps.
+
+<figure>
+  <img src="/longer_than_chinchilla/13b-unstable.png" alt="13b loss" />
+</figure>
+
+
+
+A common theory is that it hits a thin wall in the loss landscape. I do agree with this, as I do not find other anomalies in the training logs. It is simply fascinating to see it was able to find its way back and pretended (almost) nothing happened.</p>
+<p>It is worth noting that similar loss spikes have been shown in a few papers of LLM trainings such as LLaMA (though far less severe than this).</p>
+
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<hr>
+			<h1>LATEST POSTS</h1>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_2_perplexity_and_surprise/">LLM myths 2: perplexity and surprise</a></li>
+				
+				<li><a href="/posts/2024-10-27-llm_myths_1_why_does_llm_generate_loops/">LLM myths 1: why does LLM generate infinite loops</a></li>
+				
+				<li><a href="/posts/2024-06-30-mcts-and-theorem-proving/">MCTS and Theorem proving</a></li>
+				
+				<li><a href="/posts/2023-03-11-longer_than_chinchilla/">Longer than Chinchilla</a></li>
+				
+				<li><a href="/posts/2023-02-27-breaking-the-loss-barrier/">Breaking the Generalization Barrier</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+	<p>&copy; 2024 <a href="https://honglu.fan/"><b>Honglu Fan</b></a>.
+	<a href="https://github.com/honglu2875"><b>Github</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>
